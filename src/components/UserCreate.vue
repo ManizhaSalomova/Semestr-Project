@@ -9,7 +9,7 @@
                      :value="true"
                      type="error"
             >
-              Please verify Movie information.
+              Please verify User information.
             </v-alert>
           </v-col>
         </v-row>
@@ -25,30 +25,28 @@
                 <v-form ref="form" lazy-validation>
                   <v-container>
 
+                        <v-text-field
+                    v-model="user.user_id"
+                    label="User ID"
+                    required
+                    type="number"
+                    />
+
                     <v-text-field
-                      v-model="movie.name"
-                      label="Name"
-                      required
+                    v-model="user.user_name"
+                    label="User Name"
+                    required
                     />
                     <v-text-field
-                      v-model="movie.description"
-                      label="Description"
-                      required
+                    v-model="user.email"
+                    label="Email"
+                    required
                     />
-                    <v-text-field
-                      v-model="movie.year"
-                      label="Year"
-                      required
-                    />
-                    <v-text-field
-                      v-model="movie.rating"
-                      label="Rating"
-                      required
-                    />
-                  </v-container>
-                  <v-btn v-if="!isUpdate" class="blue white--text" @click="createMovie">Save</v-btn>
-                  <v-btn v-if="isUpdate" class="blue white--text" @click="updateMovie">Update</v-btn>
-                  <v-btn class="white black--text" @click="cancelOperation">Cancel</v-btn>
+
+                </v-container>
+                <v-btn v-if="!isUpdate" class="blue white--text" @click="createUser">Save</v-btn>
+                <v-btn v-if="isUpdate" class="blue white--text" @click="updateUser">Update</v-btn>
+                <v-btn class="white black--text" @click="cancelOperation">Cancel</v-btn>
 
                 </v-form>
               </v-card-text>
@@ -67,26 +65,26 @@
   const apiService = new APIService();
 
   export default {
-    name: 'MovieCreate',
+    name: 'UserCreate',
     components: {},
     data() {
       return {
         showError: false,
-        movie: {},
-        pageTitle: "Add New Movie",
+        user: {},
+        pageTitle: "Add New User",
         isUpdate: false,
         showMsg: '',
       };
     },
     methods: {
-      createMovie() {
-        apiService.addNewMovie(this.movie).then(response => {
+      createUser() {
+        apiService.addNewUser(this.user).then(response => {
           if (response.status === 201) {
-            this.movie = response.data;
-            this.showMsg = "";
-            router.push('/movie-list/new');
+            this.user = response.data;
+             this.showMsg = "";
+            router.push('/user-list/new');
           }else{
-            this.showMsg = "error";
+              this.showMsg = "error";
           }
         }).catch(error => {
           if (error.response.status === 401) {
@@ -97,15 +95,15 @@
         });
       },
       cancelOperation(){
-        router.push("/movie-list");
+         router.push("/user-list");
       },
-      updateMovie() {
-        apiService.updateMovie(this.movie).then(response => {
+      updateUser() {
+        apiService.updateUser(this.user).then(response => {
           if (response.status === 200) {
-            this.movie = response.data;
-            router.push('/movie-list/update');
+            this.user = response.data;
+            router.push('/user-list/update');
           }else{
-            this.showMsg = "error";
+              this.showMsg = "error";
           }
         }).catch(error => {
           if (error.response.status === 401) {
@@ -118,10 +116,10 @@
     },
     mounted() {
       if (this.$route.params.pk) {
-        this.pageTitle = "Edit Movie";
+        this.pageTitle = "Edit User";
         this.isUpdate = true;
-        apiService.getMovie(this.$route.params.pk).then(response => {
-          this.movie = response.data;
+        apiService.getUser(this.$route.params.pk).then(response => {
+          this.user = response.data;
         }).catch(error => {
           if (error.response.status === 401) {
             router.push("/auth");

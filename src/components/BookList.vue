@@ -8,7 +8,7 @@
             Welcome {{validUserName}}!
             <footer>
               <small>
-                <em>&mdash; Every great film should seem new every time you see it. - Roger Ebert</em>
+                <em>Book Title</em>
               </small>
             </footer>
           </blockquote>
@@ -19,46 +19,75 @@
                    :value="true"
                    type="success"
           >
-            New movie has been added.
+            New book has been added.
           </v-alert>
           <v-alert v-if="showMsg === 'update'" dismissible
                    :value="true"
                    type="success"
           >
-            Movie information has been updated.
+           Book information has been updated.
           </v-alert>
           <v-alert v-if="showMsg === 'deleted'" dismissible
                    :value="true"
                    type="success"
           >
-            Selected Movie has been deleted.
+            Selected Book has been deleted.
           </v-alert>
         </v-col>
       </v-row>
+      <v-row align="center" justify="center" dense>
+        <v-col 
+          cols="12" 
+          sm="8" 
+          md="4" 
+          lg="4">
+         <v-card elevation="0" align="center" >
+          <v-img
+            :src="require('@/assets/images/readfeed.png')" height="100%" width="50%">
+          </v-img>                   
+         </v-card>
+         </v-col>
+      </v-row>
 
       <!-- Data table -->
+      
       <v-row align="center" justify="center">
-        <v-col cols="12" md="10" v-resize="onResize">
+        <v-col cols="12" md="5" v-resize="onResize">
+          <v-card-title>
+          Search Book
+          <v-spacer></v-spacer>
+            <v-text-field
+              v-model="search"
+              append-icon="mdi-magnify"
+              label="Search"
+              single-line
+              hide-details
+            >
+            </v-text-field>
+         </v-card-title>
             <v-data-table
+              :search="search"
               :headers="headers"
-              :items="movies"
+              :items="books"
               class="elevation-1"
               style="max-height: 300px; overflow-y: auto"
-              v-if="isMobile"
+              v-if="!isMobile"
             >
                     <template v-slot:item="props">
                       <tr>
+                        <!--<td align="left">{{ props.item.user_id }}</td>-->
                         <td align="left">{{ props.item.name }}</td>
-                        <td align="left">{{ props.item.description }}</td>
-                        <td align="left">{{ props.item.year }}</td>
-                        <td align="left">{{ props.item.rating }}</td>
-                        <td align="center"><v-icon @click="updateMovie(props.item)">mdi-pencil</v-icon></td>
-                        <td align="center"><v-icon @click="deleteMovie(props.item)">mdi-delete</v-icon></td>
+                        <td align="left">{{ props.item.title }}</td>
+                        <td nowrap="true" align="left">{{ props.item.description }}</td>
+                        <td nowrap="true" align="left">{{ props.item.isbn }}</td>
+                        <td nowrap="true" align="left">{{ props.item.year }}</td>
+                        <td align="center"><v-icon @click="updateBook(props.item)">mdi-pencil</v-icon></td>
+                        <td align="center"><v-icon @click="deleteBook(props.item)">mdi-delete</v-icon></td>
                       </tr>  
                     </template>
               </v-data-table>
               <v-data-iterator 
-                :items="movies"
+                :items="books"
                 hide-default-footer
                 v-else
               >
@@ -70,12 +99,14 @@
                       cols="12"
                     >
                       <v-card>
+                        
                         <v-card-title class="pb-0 pt-0 pl-0">
+                          
                           <v-col cols="9" class="text-left body-2 text-truncate">{{ item.name }}</v-col>
                           <v-col cols="3" class="text-center">
                             <v-card-actions>
-                              <v-icon @click="updateMovie(item)" class="small">mdi-pencil</v-icon>
-                              <v-icon @click="deleteMovie(item)" class="small">mdi-delete</v-icon>
+                              <v-icon @click="updateBook(item)" class="small">mdi-pencil</v-icon>
+                              <v-icon @click="deleteBook(item)" class="small">mdi-delete</v-icon>
                               <v-icon @click.native="expand(item, !isExpanded(item))" class="small">mdi-dots-horizontal</v-icon>
                             </v-card-actions>
                           </v-col>
@@ -84,23 +115,29 @@
 
                         <v-list v-show="isExpanded(item)" dense>
                           <v-list-item>
+                            <v-list-item-content>Tile:</v-list-item-content>
+                            <v-list-item-content class="align-end">{{ item.title }}</v-list-item-content>
+                          </v-list-item>
+                          <v-list-item>
+                            <v-list-item-content>Description:</v-list-item-content>
                             <v-list-item-content class="align-end">{{ item.description }}</v-list-item-content>
+                          </v-list-item>
+                          <v-list-item>
+                            <v-list-item-content>ISBN:</v-list-item-content>
+                            <v-list-item-content class="align-end">{{ item.isbn }}</v-list-item-content>
                           </v-list-item>
                           <v-list-item>
                             <v-list-item-content>Year:</v-list-item-content>
                             <v-list-item-content class="align-end">{{ item.year }}</v-list-item-content>
                           </v-list-item>
-                          <v-list-item>
-                            <v-list-item-content>Rating:</v-list-item-content>
-                            <v-list-item-content class="align-end">{{ item.rating }}</v-list-item-content>
-                          </v-list-item>
                         </v-list>
+                        
                       </v-card>
                     </v-col>
                   </v-row>
                 </template>     
               </v-data-iterator>  
-              <v-btn class="blue mt-4 white--text" @click="addNewMovie">Add Movie</v-btn>  
+              <v-btn class="mt-4" @click="addNewBook">Add Book</v-btn>  
         </v-col>  
       </v-row>
     </v-container>  
@@ -115,33 +152,41 @@
   const apiService = new APIService();
 
   export default {
-    name: "MovieList",
+    name: "BookList",
     data: () => ({
-      movies: [],
+      books: [],
+      search: '',
       validUserName: "Guest",
-      movieSize: 0,
+      bookSize: 0,
       showMsg: '',
       isMobile: false,
       headers: [
-        {text: 'Name', sortable: false, align: 'left'},
+        {
+            text: 'Author',
+            align: 'start',
+            sortable: false,
+            value: 'title',
+          },
+       
+        {text: 'Title', sortable: false, align: 'left',},
         {text: 'Description', sortable: false, align: 'left',},
+        {text: 'ISBN', sortable: false, align: 'left',},
         {text: 'Year', sortable: false, align: 'left',},
-        {text: 'Rating', sortable: false, align: 'left',},
-        {text: 'Update', sortable: false, align: 'center',},
-        {text: 'Delete', sortable: false, align: 'center',},
+        {text: 'Update', sortable: false, align: 'left',},
+        {text: 'Delete', sortable: false, align: 'left',}
       ],
 
     }),
     mounted() {
-      this.getMovies();
+      this.getBooks();
       this.showMessages();
     },
     methods: {
       onResize() {
           if (window.innerWidth > 600)
-            this.isMobile = true;
-          else  
             this.isMobile = false;
+          else  
+            this.isMobile = true;
         },
       showMessages(){
         console.log(this.$route.params.msg)
@@ -149,12 +194,10 @@
           this.showMsg = this.$route.params.msg;
         }
       },
-      getMovies() {
-        apiService.getMovieList().then(response => {
-          this.movies = response.data.data;
-          console.log(response.data.data);
-          console.log(response.data);
-          this.movieSize = this.movies.length;
+      getBooks() {
+        apiService.getBookList().then(response => {
+          this.books = response.data.data;
+          this.bookSize = this.books.length;
           if (localStorage.getItem("isAuthenticates")
             && JSON.parse(localStorage.getItem("isAuthenticates")) === true) {
             this.validUserName = JSON.parse(localStorage.getItem("log_user"));
@@ -168,22 +211,22 @@
           }
         });
       },
-      addNewMovie() {
+      addNewBook() {
         if (localStorage.getItem("isAuthenticates")
           && JSON.parse(localStorage.getItem("isAuthenticates")) === true) {
-          router.push('/movie-create');
+          router.push('/book-create');
         } else {
           router.push("/auth");
         }
       },
-      updateMovie(movie) {
-        router.push('/movie-create/' + movie.pk);
+      updateBook(book) {
+        router.push('/book-create/' + book.pk);
       },
-      deleteMovie(movie) {
-        apiService.deleteMovie(movie.pk).then(response => {
+      deleteBook(book) {
+        apiService.deleteBook(book.pk).then(response => {
           if (response.status === 204) {
-            router.push('/movie-list/deleted/')
-            this.getMovies()
+            router.push('/book-list/deleted/')
+            this.getBooks()
           }
         }).catch(error => {
           if (error.response.status === 401) {

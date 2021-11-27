@@ -24,4 +24,4 @@ new Vue({
   router,
   components: { App },
   template: '<App/>'
-})
+}) 
